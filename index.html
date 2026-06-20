@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Generator Dram Challenge'u</title>
+<style>
+    :root{
+        --bg:#090909;
+        --panel:#151515;
+        --panel2:#202020;
+        --yellow:#ffd23f;
+        --orange:#ff9f1c;
+        --red:#ff3b30;
+        --text:#f4f4f4;
+        --muted:#a9a9a9;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+        margin:0;
+        min-height:100vh;
+        font-family:Arial, Helvetica, sans-serif;
+        color:var(--text);
+        background:
+            radial-gradient(circle at 20% 10%, rgba(255,210,63,.18), transparent 28%),
+            radial-gradient(circle at 80% 90%, rgba(255,59,48,.14), transparent 30%),
+            linear-gradient(135deg,#060606,#141414 55%,#070707);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        overflow:hidden;
+    }
+
+    body::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        background:
+            linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        background-size:34px 34px;
+        pointer-events:none;
+        opacity:.45;
+    }
+
+    .wrap{
+        width:min(1100px, 94vw);
+        text-align:center;
+        position:relative;
+        z-index:1;
+    }
+
+    .badge{
+        display:inline-block;
+        color:#111;
+        background:var(--yellow);
+        padding:8px 16px;
+        border-radius:999px;
+        font-weight:900;
+        letter-spacing:.08em;
+        box-shadow:0 0 30px rgba(255,210,63,.35);
+        transform:rotate(-1deg);
+        margin-bottom:18px;
+    }
+
+    h1{
+        margin:0 0 10px;
+        font-size:clamp(34px, 7vw, 76px);
+        line-height:.95;
+        text-transform:uppercase;
+        text-shadow:
+            4px 4px 0 #000,
+            0 0 24px rgba(255,210,63,.35);
+    }
+
+    .subtitle{
+        color:var(--muted);
+        margin-bottom:34px;
+        font-size:18px;
+    }
+
+    .machine{
+        position:relative;
+        background:linear-gradient(180deg,#2a2a2a,#111);
+        border:4px solid #3a3a3a;
+        border-radius:28px;
+        padding:34px;
+        box-shadow:
+            0 30px 80px rgba(0,0,0,.55),
+            inset 0 0 0 2px rgba(255,255,255,.05),
+            0 0 45px rgba(255,210,63,.12);
+    }
+
+    .lights{
+        display:flex;
+        justify-content:center;
+        gap:12px;
+        margin-bottom:24px;
+    }
+
+    .light{
+        width:14px;
+        height:14px;
+        border-radius:50%;
+        background:var(--yellow);
+        box-shadow:0 0 16px var(--yellow);
+        animation:blink .9s infinite alternate;
+    }
+
+    .light:nth-child(even){
+        background:var(--red);
+        box-shadow:0 0 16px var(--red);
+        animation-delay:.35s;
+    }
+
+    @keyframes blink{
+        from{ opacity:.35; transform:scale(.85); }
+        to{ opacity:1; transform:scale(1.12); }
+    }
+
+    .reels{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:20px;
+    }
+
+    .reel{
+        min-height:190px;
+        border-radius:18px;
+        border:3px solid var(--yellow);
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.08), transparent 18%, transparent 80%, rgba(0,0,0,.35)),
+            #101010;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:22px;
+        font-size:clamp(19px, 2.2vw, 27px);
+        font-weight:900;
+        line-height:1.16;
+        text-shadow:2px 2px 0 #000;
+        box-shadow:
+            inset 0 0 30px rgba(0,0,0,.8),
+            0 0 20px rgba(255,210,63,.15);
+        position:relative;
+        overflow:hidden;
+    }
+
+    .reel::before,
+    .reel::after{
+        content:"";
+        position:absolute;
+        left:0;
+        right:0;
+        height:42%;
+        pointer-events:none;
+        z-index:2;
+    }
+
+    .reel::before{
+        top:0;
+        background:linear-gradient(180deg, rgba(0,0,0,.72), transparent);
+    }
+
+    .reel::after{
+        bottom:0;
+        background:linear-gradient(0deg, rgba(0,0,0,.72), transparent);
+    }
+
+    .reel span{
+        position:relative;
+        z-index:3;
+    }
+
+    .spinning span{
+        animation:slot .12s infinite linear;
+        color:var(--yellow);
+    }
+
+    @keyframes slot{
+        0%{ transform:translateY(-18px); filter:blur(1px); opacity:.65; }
+        50%{ transform:translateY(10px); filter:blur(0); opacity:1; }
+        100%{ transform:translateY(28px); filter:blur(1px); opacity:.65; }
+    }
+
+    button{
+        margin-top:30px;
+        border:0;
+        border-radius:18px;
+        background:linear-gradient(180deg,var(--yellow),var(--orange));
+        color:#111;
+        padding:18px 38px;
+        font-size:24px;
+        font-weight:1000;
+        cursor:pointer;
+        box-shadow:
+            0 10px 0 #8a5200,
+            0 0 28px rgba(255,210,63,.35);
+        transition:.08s;
+    }
+
+    button:active{
+        transform:translateY(8px);
+        box-shadow:
+            0 2px 0 #8a5200,
+            0 0 16px rgba(255,210,63,.25);
+    }
+
+    .result{
+        margin:26px auto 0;
+        max-width:860px;
+        background:rgba(0,0,0,.44);
+        border:1px solid rgba(255,210,63,.28);
+        border-radius:18px;
+        padding:18px 22px;
+        color:#eee;
+        font-size:18px;
+        min-height:62px;
+    }
+
+    .result strong{
+        color:var(--yellow);
+    }
+
+    .fanfare{
+        animation:fanfare .75s ease-out;
+    }
+
+    @keyframes fanfare{
+        0%{ transform:scale(1); filter:brightness(1); }
+        25%{ transform:scale(1.025); filter:brightness(1.45); }
+        55%{ transform:scale(.995); filter:brightness(1.15); }
+        100%{ transform:scale(1); filter:brightness(1); }
+    }
+
+    .result.fanfare{
+        box-shadow:
+            0 0 0 1px rgba(255,210,63,.35),
+            0 0 34px rgba(255,210,63,.45);
+        border-color:rgba(255,210,63,.75);
+    }
+
+    
+    .credit{
+        margin-top:18px;
+        text-align:center;
+        color:#777;
+        font-size:13px;
+        letter-spacing:1px;
+        text-transform:uppercase;
+        opacity:.7;
+    }
+
+    .credit:hover{
+        color:#ffd23f;
+        opacity:1;
+        transition:.2s;
+    }
+
+@media(max-width:820px){
+        body{ overflow:auto; padding:26px 0; }
+        .reels{ grid-template-columns:1fr; }
+        .reel{ min-height:128px; }
+    }
+</style>
+</head>
+<body>
+<main class="wrap" id="wrap">
+    <div class="badge">STREAMOWY GENERATOR</div>
+    <h1>Generator Dram Challenge'u</h1>
+    <div class="subtitle">Wylosuj dzisiejszą aferę w challenge.</div>
+
+    <section class="machine">
+        <div class="lights">
+            <div class="light"></div><div class="light"></div><div class="light"></div>
+            <div class="light"></div><div class="light"></div><div class="light"></div>
+            <div class="light"></div><div class="light"></div><div class="light"></div>
+        </div>
+
+        <div class="reels">
+            <div class="reel" id="reel1"><span>Kliknij losowanie</span></div>
+            <div class="reel" id="reel2"><span>Kliknij losowanie</span></div>
+            <div class="reel" id="reel3"><span>Kliknij losowanie</span></div>
+        </div>
+
+        <button id="spinBtn">LOSUJ DRAMĘ</button>
+
+        <div class="result" id="result">
+            Wynik
+        </div>
+    </section>
+
+    <div class="credit">
+        Made by: Atomowy Coggers
+    </div>
+</main>
+
+<script>
+const list1 = [
+"Bruce przeczytał jedną wiadomość z chatu",
+"XN znalazł nową lukę w regulaminie",
+"Widz poprosił o wyjaśnienie kół ratunkowych",
+"Donator wysłał pytanie za 7 zł",
+"XN otworzył jebalnie",
+"Ktoś przypomniał o 1v1",
+"Bruce ma zły humor",
+"XN dostał request na 10 gier Jarvanem",
+"Bruce i XN trafili do tej samej kolejki",
+"XN powiedział C-worda na streamie bruca",
+"Mrówki wróciły do domu XN-a",
+"Miód Oli zniknął",
+"Jarvan pojawił się po raz 47",
+"Kubica napisał wiadomość",
+"Kubica dostał bana",
+"Bruce stwierdza, że ma nowego maina",
+"XN znajduje mrówkę w mowym miejscu",
+"Chat przypomniał ósmą stronę",
+"Ktoś wspomniał o Renacie",
+"Bruce uruchomił nowy projekt",
+"Bruce wymyślił nowe porównanie",
+"XN zaczął liczyć pieniądze z donate'ów",
+"Bruce usłyszał słowa prawdy",
+"Bruce zaczął liczyć pieniądze XN-a",
+"Ktoś powiedział że challenge jest dla bezrobotnych",
+"Ktoś zapytał o troll picka",
+"Chat przypomniał aferę sprzed dwóch dni",
+"Ktoś utknął w słoiku miodu",
+"XN stwierdza, że zasady Bruca nie są takie złe",
+"Bruce zobaczył comfort picka",
+"Olaczka dołącza do challengu",
+"Bruce mówi, że challenge nie ma sensu",
+"XN wpadł na pomysł jak urozmaicić challenge",
+"XN otwiera song request",
+"XN znalazł nowego maina",
+"Okazało się, że Yuumi jest na OP.GG w kategorii TOP LANE"
+];
+
+const list2 = [
+"25 minut interpretowania jednego zdania",
+"głosowanie nad wyjątkiem od wyjątku",
+"analiza czy to tryhard czy fun",
+"Bruce zmutował się na 2 godziny",
+"Bruce mówi że już mu wszystko jedno",
+"szukanie winnego sprzed 3 dni",
+"3 godzinna debata o tym czy to fair",
+"Bruce zaczął tłumaczyć zasady",
+"powołano sąd najwyższy Deflesa",
+"Defles przyznaje racje Brucowi",
+"rozpoczęto dochodzenie mrówkowe",
+"otwarto czwartą wersję regulaminu",
+"rozpoczęła się wojna o Jarvana",
+"chat zaczął ragebaitować Bruce'a",
+"Bruce został postawiony w pozycji XN-a",
+"wszyscy zaczęli liczyć requesty",
+"ktoś dał aprobate w donejcie",
+"jest już za późno, żeby cokolwiek zrobić",
+"challenge wszedł w fazę projektową",
+"Rozpoczęła się 3 godzinna debata na ten temat",
+"powstały trzy interpretacje tej samej zasady",
+"uruchomiono procedurę comfort pick",
+"komisja ds. miodu rozpoczęła obrady",
+"Bruce stwierdza, że w takim razie ten challenge jest bez sensu",
+"Bruce znajduje 10 wymówek",
+"Książe Kapota leci zapętlony u XNa przez 5 godzin",
+"Bruce użył porównania z Messim",
+"wszyscy zaczęli cytować zasady Bruca",
+"Blitz z Conquerorem trafia się do lobby",
+"Bruce stwierdza, że to wyjątek od reguły",
+"Jarvan został znowu picknięty mimo kolejki",
+"nikt już nie pamięta o czym była rozmowa",
+"Pocieszyciele się jednoczą",
+"Bruce mówi, że ma wyjebane",
+"Bruce mówi, że to się nie liczy",
+"Okazuje się, że to sprawka głosicieli"
+];
+
+const list3 = [
+"Bruce zmienia zdanie po raz 4",
+"powstały 4 nowe zasady",
+"powstał nowy wyjątek",
+"wszyscy uznali że winny jest chat",
+"challenge został uratowany",
+"Kubica dostał bana",
+"wrócili do punktu wyjścia",
+"XN otworzył nową zbiórkę",
+"Deadpool > Harry Potter",
+"mrówki wygrały challenge",
+"przepraszalnia została otwarta",
+"Defles jest dumny",
+"Sytuacja powtórzyła się jeszce 2 razy",
+"Atomowy musiał montować godzinę więcej",
+"regulamin zwiększył objętość o 30%",
+"losowy widz dostał bana",
+"wszyscy wkurwieni",
+"Bruce ogłosił się zwycięzcą turnieju",
+"Bruce dostaje karę od Renaty na komputer",
+"Bruce przeprosił i po chwili odwołał przeprosiny",
+"XN dostał zakaz grania Jarvanem",
+"XN nauczył się mówić \"H\" zamiast \"CHR\"",
+"twitter ogłosił, że to afera tygodnia",
+"Bruce zmniejsza swój cennik",
+"powstała nowa afera o poprzednią aferę",
+"Mrówczan IV został beneficjentem miodu",
+"miód Oli został znacjonalizowany",
+"ósma strona YouTube została odpalona",
+"XN dostał kare na -6 godzin",
+"Bruce dolicza sobie 4 godziny",
+"XN zaczął się pakować na śnieżke",
+"Widzowie odkryli, że challenge jest ustawiony",
+"challenge został zastąpiony debatą",
+"wszyscy zgodzili się że nic nie jest jasne",
+"XN Zapowiada nowy challenge",
+"Ola dostała swój VR avatar mrówkowy",
+"XN robi 48h streama dla wyrównania szans"
+];
+const reels = [
+    { el: document.querySelector("#reel1 span"), box: document.querySelector("#reel1"), list: list1 },
+    { el: document.querySelector("#reel2 span"), box: document.querySelector("#reel2"), list: list2 },
+    { el: document.querySelector("#reel3 span"), box: document.querySelector("#reel3"), list: list3 }
+];
+
+const btn = document.getElementById("spinBtn");
+const result = document.getElementById("result");
+const wrap = document.getElementById("wrap");
+
+function pick(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function spinOne(reel, finalText, duration){
+    return new Promise(resolve => {
+        reel.box.classList.add("spinning");
+        const interval = setInterval(() => {
+            reel.el.textContent = pick(reel.list);
+        }, 70);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            reel.el.textContent = finalText;
+            reel.box.classList.remove("spinning");
+            resolve();
+        }, duration);
+    });
+}
+
+async function spin(){
+    btn.disabled = true;
+    result.innerHTML = "Losowanie dramy...";
+    wrap.classList.remove("fanfare");
+    result.classList.remove("fanfare");
+
+    const final = reels.map(r => pick(r.list));
+
+    await Promise.all([
+        spinOne(reels[0], final[0], 850),
+        spinOne(reels[1], final[1], 1250),
+        spinOne(reels[2], final[2], 1650)
+    ]);
+
+    result.innerHTML = `
+        <strong>1.</strong> ${final[0]}<br>
+        <strong>2.</strong> ${final[1]}<br>
+        <strong>3.</strong> ${final[2]}
+    `;
+
+    wrap.classList.add("fanfare");
+    result.classList.add("fanfare");
+
+    setTimeout(() => {
+        wrap.classList.remove("fanfare");
+        result.classList.remove("fanfare");
+    }, 800);
+
+    btn.disabled = false;
+}
+
+btn.addEventListener("click", spin);
+</script>
+</body>
+</html>
