@@ -185,10 +185,9 @@
         100%{ transform:translateY(28px); filter:blur(1px); opacity:.65; }
     }
 
-    .mute-btn{
+    .mute-btn,
+    .tnt-btn{
         position:fixed;
-        top:22px;
-        right:22px;
         z-index:5;
         width:68px;
         height:68px;
@@ -208,7 +207,37 @@
             0 0 28px rgba(255,210,63,.35);
     }
 
-    .mute-btn:active{
+    .mute-btn{
+        top:22px;
+        right:22px;
+    }
+
+    .tnt-btn{
+        top:104px;
+        right:22px;
+        font-size:31px;
+    }
+
+    .tnt-btn::after{
+        content:attr(data-count);
+        position:absolute;
+        right:-8px;
+        bottom:-8px;
+        min-width:28px;
+        height:28px;
+        padding:0 7px;
+        border:2px solid #111;
+        border-radius:999px;
+        background:var(--red);
+        color:#fff;
+        font-size:15px;
+        font-weight:900;
+        line-height:24px;
+        text-shadow:1px 1px 0 #000;
+    }
+
+    .mute-btn:active,
+    .tnt-btn:active{
         transform:translateY(6px);
         box-shadow:
             0 2px 0 #8a5200,
@@ -298,6 +327,7 @@
 </head>
 <body>
 <button class="mute-btn" id="muteBtn" type="button" aria-label="Wycisz dźwięk" aria-pressed="false">🔊</button>
+<button class="tnt-btn" id="tntBtn" type="button" aria-label="TNT użytkownika: 0" data-count="0">🧨</button>
 <main class="wrap" id="wrap">
     <div class="badge">STREAMOWY GENERATOR</div>
     <h1>Generator Dram Challenge'u</h1>
@@ -454,17 +484,37 @@ const reels = [
 
 const btn = document.getElementById("spinBtn");
 const muteBtn = document.getElementById("muteBtn");
+const tntBtn = document.getElementById("tntBtn");
 const result = document.getElementById("result");
 const wrap = document.getElementById("wrap");
 const spinSound = new Audio("slots.mp3");
 const muteStorageKey = "dramaGeneratorMuted";
+const tntStorageKey = "dramaGeneratorUserTnt";
+const debugKey = "`";
 let isMuted = localStorage.getItem(muteStorageKey) === "true";
+let userTnt = Math.max(0, Number(localStorage.getItem(tntStorageKey)) || 0);
+let isDebugKeyHeld = false;
 
 function updateMuteButton(){
     spinSound.muted = isMuted;
     muteBtn.textContent = isMuted ? "🔇" : "🔊";
     muteBtn.setAttribute("aria-label", isMuted ? "Włącz dźwięk" : "Wycisz dźwięk");
     muteBtn.setAttribute("aria-pressed", String(isMuted));
+}
+
+function updateTntButton(){
+    tntBtn.dataset.count = String(userTnt);
+    tntBtn.setAttribute("aria-label", `TNT użytkownika: ${userTnt}`);
+}
+
+function adjustUserTnt(amount){
+    userTnt = Math.max(0, userTnt + amount);
+    localStorage.setItem(tntStorageKey, String(userTnt));
+    updateTntButton();
+}
+
+function isDebugKey(event){
+    return event.key === debugKey || event.code === "Backquote";
 }
 
 function playSpinSound(){
@@ -480,6 +530,36 @@ function stopSpinSound(){
 }
 
 updateMuteButton();
+updateTntButton();
+
+document.addEventListener("keydown", (event) => {
+    if (isDebugKey(event)) {
+        isDebugKeyHeld = true;
+    }
+});
+
+document.addEventListener("keyup", (event) => {
+    if (isDebugKey(event)) {
+        isDebugKeyHeld = false;
+    }
+});
+
+window.addEventListener("blur", () => {
+    isDebugKeyHeld = false;
+});
+
+tntBtn.addEventListener("click", () => {
+    if (isDebugKeyHeld) {
+        adjustUserTnt(1);
+    }
+});
+
+tntBtn.addEventListener("contextmenu", (event) => {
+    if (isDebugKeyHeld) {
+        event.preventDefault();
+        adjustUserTnt(-1);
+    }
+});
 
 muteBtn.addEventListener("click", () => {
     isMuted = !isMuted;
