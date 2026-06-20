@@ -185,6 +185,36 @@
         100%{ transform:translateY(28px); filter:blur(1px); opacity:.65; }
     }
 
+    .mute-btn{
+        position:fixed;
+        top:22px;
+        right:22px;
+        z-index:5;
+        width:68px;
+        height:68px;
+        margin:0;
+        padding:0;
+        border:3px solid rgba(255,255,255,.22);
+        border-radius:50%;
+        background:linear-gradient(180deg,var(--yellow),var(--orange));
+        color:#111;
+        font-size:34px;
+        line-height:1;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow:
+            0 8px 0 #8a5200,
+            0 0 28px rgba(255,210,63,.35);
+    }
+
+    .mute-btn:active{
+        transform:translateY(6px);
+        box-shadow:
+            0 2px 0 #8a5200,
+            0 0 16px rgba(255,210,63,.25);
+    }
+
     button{
         margin-top:30px;
         border:0;
@@ -267,6 +297,7 @@
 </style>
 </head>
 <body>
+<button class="mute-btn" id="muteBtn" type="button" aria-label="Wycisz dźwięk" aria-pressed="false">🔊</button>
 <main class="wrap" id="wrap">
     <div class="badge">STREAMOWY GENERATOR</div>
     <h1>Generator Dram Challenge'u</h1>
@@ -422,8 +453,39 @@ const reels = [
 ];
 
 const btn = document.getElementById("spinBtn");
+const muteBtn = document.getElementById("muteBtn");
 const result = document.getElementById("result");
 const wrap = document.getElementById("wrap");
+const spinSound = new Audio("slots.mp3");
+const muteStorageKey = "dramaGeneratorMuted";
+let isMuted = localStorage.getItem(muteStorageKey) === "true";
+
+function updateMuteButton(){
+    spinSound.muted = isMuted;
+    muteBtn.textContent = isMuted ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-label", isMuted ? "Włącz dźwięk" : "Wycisz dźwięk");
+    muteBtn.setAttribute("aria-pressed", String(isMuted));
+}
+
+function playSpinSound(){
+    spinSound.currentTime = 0;
+    if (!isMuted) {
+        spinSound.play().catch(() => {});
+    }
+}
+
+function stopSpinSound(){
+    spinSound.pause();
+    spinSound.currentTime = 0;
+}
+
+updateMuteButton();
+
+muteBtn.addEventListener("click", () => {
+    isMuted = !isMuted;
+    localStorage.setItem(muteStorageKey, String(isMuted));
+    updateMuteButton();
+});
 
 function pick(arr){
     return arr[Math.floor(Math.random() * arr.length)];
@@ -447,6 +509,7 @@ function spinOne(reel, finalText, duration){
 
 async function spin(){
     btn.disabled = true;
+    playSpinSound();
     result.innerHTML = "Losowanie dramy...";
     wrap.classList.remove("fanfare");
     result.classList.remove("fanfare");
@@ -458,6 +521,8 @@ async function spin(){
         spinOne(reels[1], final[1], 1250),
         spinOne(reels[2], final[2], 1650)
     ]);
+
+    stopSpinSound();
 
     result.innerHTML = `
         <strong>1.</strong> ${final[0]}<br>
