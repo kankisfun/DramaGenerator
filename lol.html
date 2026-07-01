@@ -67,6 +67,30 @@
         z-index:1;
     }
 
+    .mute-btn{
+        position:fixed;
+        top:24px;
+        right:24px;
+        z-index:5;
+        width:68px;
+        height:68px;
+        border:1px solid var(--gold2);
+        border-radius:50%;
+        background:linear-gradient(180deg, #1e6f82, #0a323c 48%, #071a21);
+        color:var(--gold2);
+        font-size:32px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        box-shadow:0 8px 0 #052329, 0 0 30px rgba(10,200,185,.3), inset 0 0 18px rgba(240,230,210,.12);
+        cursor:pointer;
+    }
+
+    .mute-btn:active{
+        transform:translateY(6px);
+        box-shadow:0 2px 0 #052329, 0 0 18px rgba(10,200,185,.22);
+    }
+
     .nav-link{
         position:fixed;
         top:24px;
@@ -137,6 +161,42 @@
     @keyframes riftSpin{ to{ transform:rotate(360deg); } }
 
     .content{ position:relative; z-index:1; }
+
+    .video-stage{
+        position:relative;
+        min-height:190px;
+        margin-bottom:24px;
+        border:1px solid rgba(200,155,60,.68);
+        background:radial-gradient(circle at center, rgba(10,200,185,.16), rgba(1,7,17,.9) 68%);
+        overflow:hidden;
+        box-shadow:inset 0 0 35px rgba(0,0,0,.68), 0 0 28px rgba(10,200,185,.14);
+        clip-path:polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+    }
+
+    .video-stage video{
+        width:100%;
+        height:190px;
+        object-fit:cover;
+        display:block;
+        opacity:.56;
+        filter:saturate(1.25) contrast(1.12);
+    }
+
+    .video-stage::after{
+        content:"Losowanie wszystkich zawodników";
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:var(--gold2);
+        font:900 clamp(18px, 3vw, 34px) Arial, sans-serif;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        text-shadow:0 0 18px rgba(10,200,185,.72), 0 4px 0 #000;
+        background:linear-gradient(90deg, rgba(1,7,17,.72), rgba(1,7,17,.18), rgba(1,7,17,.72));
+        pointer-events:none;
+    }
 
     .teams{
         display:grid;
@@ -252,12 +312,14 @@
     @media(max-width:820px){
         body{ align-items:flex-start; }
         .nav-link{ position:static; display:inline-block; margin-bottom:18px; }
+        .mute-btn{ top:18px; right:18px; width:58px; height:58px; font-size:28px; }
         .teams{ grid-template-columns:1fr; }
         .arena{ padding:20px; }
     }
 </style>
 </head>
 <body>
+<button class="mute-btn" id="muteBtn" type="button" aria-label="Wycisz film" aria-pressed="false">🔊</button>
 <a class="nav-link" href="index.html">← Drama generator</a>
 <main class="wrap" id="wrap">
     <div class="badge">League of Legends custom 3v3</div>
@@ -266,6 +328,9 @@
 
     <section class="arena" id="arena">
         <div class="content">
+            <div class="video-stage" aria-hidden="true">
+                <video id="slotVideo" src="aslots.mp4" preload="auto" playsinline muted></video>
+            </div>
             <div class="teams">
                 <article class="team" aria-label="Drużyna niebieska">
                     <h2>Drużyna Niebieska</h2>
@@ -293,7 +358,37 @@ const slots = [...document.querySelectorAll(".summoner")].map((box) => ({
     text: box.querySelector("span")
 }));
 const spinBtn = document.getElementById("spinBtn");
+const muteBtn = document.getElementById("muteBtn");
 const arena = document.getElementById("arena");
+const slotVideo = document.getElementById("slotVideo");
+const muteStorageKey = "lolRandomizerMuted";
+let isMuted = localStorage.getItem(muteStorageKey) === "true";
+
+function updateMuteButton(){
+    slotVideo.muted = isMuted;
+    muteBtn.textContent = isMuted ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-label", isMuted ? "Włącz film" : "Wycisz film");
+    muteBtn.setAttribute("aria-pressed", String(isMuted));
+}
+
+function playSlotVideo(){
+    slotVideo.currentTime = 0;
+    slotVideo.muted = isMuted;
+    slotVideo.play().catch(() => {});
+}
+
+function stopSlotVideo(){
+    slotVideo.pause();
+    slotVideo.currentTime = 0;
+}
+
+updateMuteButton();
+
+muteBtn.addEventListener("click", () => {
+    isMuted = !isMuted;
+    localStorage.setItem(muteStorageKey, String(isMuted));
+    updateMuteButton();
+});
 
 function pick(list){
     return list[Math.floor(Math.random() * list.length)];
@@ -329,10 +424,12 @@ function spinSlot(slot, finalName, duration){
 async function spinTeams(){
     spinBtn.disabled = true;
     arena.classList.remove("fanfare");
+    playSlotVideo();
 
     const order = shuffle(players);
     await Promise.all(slots.map((slot, index) => spinSlot(slot, order[index], 850 + index * 260)));
 
+    stopSlotVideo();
     arena.classList.add("fanfare");
     setTimeout(() => arena.classList.remove("fanfare"), 850);
     spinBtn.disabled = false;
