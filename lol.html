@@ -302,7 +302,7 @@
 </style>
 </head>
 <body>
-<button class="mute-btn" id="muteBtn" type="button" aria-label="Wycisz film" aria-pressed="false">🔊</button>
+<button class="mute-btn" id="muteBtn" type="button" aria-label="Wycisz dźwięk" aria-pressed="false">🔊</button>
 <main class="wrap" id="wrap">
     <div class="badge">League of Legends custom 3v3</div>
     <h1>Losowanie drużyn</h1>
@@ -343,13 +343,15 @@ const spinBtn = document.getElementById("spinBtn");
 const muteBtn = document.getElementById("muteBtn");
 const arena = document.getElementById("arena");
 const slotVideo = document.getElementById("slotVideo");
+const spinSound = new Audio("slots.mp3");
 const muteStorageKey = "lolRandomizerMuted";
 let isMuted = localStorage.getItem(muteStorageKey) === "true";
 
 function updateMuteButton(){
     slotVideo.muted = isMuted;
+    spinSound.muted = isMuted;
     muteBtn.textContent = isMuted ? "🔇" : "🔊";
-    muteBtn.setAttribute("aria-label", isMuted ? "Włącz film" : "Wycisz film");
+    muteBtn.setAttribute("aria-label", isMuted ? "Włącz dźwięk" : "Wycisz dźwięk");
     muteBtn.setAttribute("aria-pressed", String(isMuted));
 }
 
@@ -359,9 +361,21 @@ function playSlotVideo(){
     slotVideo.play().catch(() => {});
 }
 
+function playSpinSound(){
+    spinSound.currentTime = 0;
+    if (!isMuted) {
+        spinSound.play().catch(() => {});
+    }
+}
+
 function stopSlotVideo(){
     slotVideo.pause();
     slotVideo.currentTime = 0;
+}
+
+function stopSpinSound(){
+    spinSound.pause();
+    spinSound.currentTime = 0;
 }
 
 updateMuteButton();
@@ -407,11 +421,13 @@ async function spinTeams(){
     spinBtn.disabled = true;
     arena.classList.remove("fanfare");
     playSlotVideo();
+    playSpinSound();
 
     const order = shuffle(players);
     await Promise.all(slots.map((slot, index) => spinSlot(slot, order[index], 850 + index * 260)));
 
     stopSlotVideo();
+    stopSpinSound();
     arena.classList.add("fanfare");
     setTimeout(() => arena.classList.remove("fanfare"), 850);
     spinBtn.disabled = false;
